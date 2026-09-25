@@ -53,4 +53,24 @@ public class FileIntegrityMonitor {
         }
     }
 
+    private static void printUsage() {
+        System.out.println("=============================================");
+        System.out.println("  File Integrity Monitor (FIM)");
+        System.out.println("  SHA-256 Host-Based Detection Tool");
+        System.out.println("=============================================");
+        System.out.println();
+        System.out.println("Usage:");
+        System.out.println("  java FileIntegrityMonitor --init  [dir] [baseline]");
+        System.out.println("  java FileIntegrityMonitor --check [dir] [baseline]");
+        System.out.println();
+        System.out.println("Arguments:");
+        System.out.println("  dir       Directory to monitor (default: current dir)");
+        System.out.println("  baseline  Baseline file path (default: baseline.properties)");
+        System.out.println();
+        System.out.println("Examples:");
+        System.out.println("  java FileIntegrityMonitor --init test_dir");
+        System.out.println("  java FileIntegrityMonitor --check test_dir");
+    }
+}
+
 }

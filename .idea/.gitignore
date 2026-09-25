@@ -1,10 +1,21 @@
-# Default ignored files
-/shelf/
-/workspace.xml
-# Editor-based HTTP Client requests
-/httpRequests/
-# Ignored default folder with query files
-/queries/
-# Datasource local storage ignored files
-/dataSources/
-/dataSources.local.xml
+cat << 'EOF' > .gitignore
+# Compiled Java bytecode
+*.class
+
+# Generated baseline files
+*.properties
+
+# Test directories
+test_dir/
+
+# IDE files
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+EOF
