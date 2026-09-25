@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c29f8c7e-45c1-4f8a-b091-42ddcd0ca049" name="Changes" comment="Detects unauthorized file changes using SHA-256 cryptographic hashing">
-      <change afterPath="$PROJECT_DIR$/.idea/src/java/FileIntegrityMonitor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/src/FileIntegrityMonitor.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FileIntegrityMonitor.java" beforeDir="false" />
+    <list default="true" id="c29f8c7e-45c1-4f8a-b091-42ddcd0ca049" name="Changes" comment="Updated the Java file and added extra comments and added the calculateSHA256 method to the class">
+      <change beforePath="$PROJECT_DIR$/.idea/src/java/FileIntegrityMonitor.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/FileIntegrityMonitor.class" beforeDir="false" afterPath="$PROJECT_DIR$/FileIntegrityMonitor.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,6 +49,8 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/java" />
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/.idea/src" />
     </key>
   </component>
@@ -80,6 +80,7 @@
     <MESSAGE value="added all needed imports" />
     <MESSAGE value="verification code" />
     <MESSAGE value="Detects unauthorized file changes using SHA-256 cryptographic hashing" />
-    <option name="LAST_COMMIT_MESSAGE" value="Detects unauthorized file changes using SHA-256 cryptographic hashing" />
+    <MESSAGE value="Updated the Java file and added extra comments and added the calculateSHA256 method to the class" />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated the Java file and added extra comments and added the calculateSHA256 method to the class" />
   </component>
 </project>
