@@ -30,32 +30,18 @@ public class FileIntegrityMonitor {
         String baselineFile = args.length > 2 ? args[2] : "baseline.properties";
 
         Path targetPath = Paths.get(targetDir);
+        Path baselinePath = Paths.get(baselineFile);
 
         switch (mode) {
             case "--init":
-                System.out.println("[*] Init mode selected.");
-                System.out.println("[*] Target directory: " + targetPath.toAbsolutePath());
-                
-                if (!Files.exists(targetPath)) {
-                    System.err.println("[x] Error: Target path '" + targetPath + "' does not exist.");
-                    System.exit(1);
-                }
-
-                System.out.println("[*] Scanning directory and calculating SHA-256 hashes...\n");
-                Map<String, String> fileHashes = scanDirectory(targetPath);
-                
-                System.out.println("--- DISCOVERED FILES AND HASHES (" + fileHashes.size() + ") ---");
-                for (Map.Entry<String, String> entry : fileHashes.entrySet()) {
-                    System.out.println("File: " + entry.getKey());
-                    System.out.println("Hash: " + entry.getValue());
-                    System.out.println();
-                }
+                initBaseline(targetPath, baselinePath);
                 break;
 
             case "--check":
                 System.out.println("[*] Check mode selected.");
                 System.out.println("[*] Target directory: " + targetPath.toAbsolutePath());
-                System.out.println("[*] Baseline file:    " + baselineFile);
+                System.out.println("[*] Baseline file:    " + baselinePath.toAbsolutePath());
+                // TODO: Implemented in Stage 5
                 break;
 
             default:
@@ -66,15 +52,49 @@ public class FileIntegrityMonitor {
     }
 
     /**
-     * Recursively scans a target directory and computes the SHA-256 hash for each file.
+     * Generates a baseline manifest file containing SHA-256 hashes of all files in targetDir.
      *
-     * @param targetDir Directory to recursively scan
-     * @return Sorted map of relative file paths to their hex SHA-256 hashes
+     * @param targetDir Directory to scan
+     * @param baselinePath Output path for the baseline manifest
+     */
+    private static void initBaseline(Path targetDir, Path baselinePath) {
+        System.out.println("[*] Generating baseline manifest...");
+        System.out.println("[*] Target directory: " + targetDir.toAbsolutePath());
+
+        if (!Files.exists(targetDir)) {
+            System.err.println("[x] Error: Target path '" + targetDir + "' does not exist.");
+            System.exit(1);
+        }
+
+        Map<String, String> fileHashes = scanDirectory(targetDir);
+
+        // Properties is Java's standard key-value configuration and manifest container
+        Properties props = new Properties();
+        props.setProperty("metadata.timestamp", Instant.now().toString());
+        props.setProperty("metadata.target", targetDir.toAbsolutePath().toString());
+        props.setProperty("metadata.fileCount", String.valueOf(fileHashes.size()));
+
+        for (Map.Entry<String, String> entry : fileHashes.entrySet()) {
+            props.setProperty("hash." + entry.getKey(), entry.getValue());
+        }
+
+        // Save manifest using buffered I/O stream
+        try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(baselinePath))) {
+            props.store(out, "FIM Security Baseline Manifest - SHA-256");
+            System.out.println("[+] Success: Baseline generated with " + fileHashes.size() + " file signature(s).");
+            System.out.println("[+] Manifest written to: " + baselinePath.toAbsolutePath());
+        } catch (IOException e) {
+            System.err.println("[x] Error writing baseline file: " + e.getMessage());
+            System.exit(1);
+        }
+    }
+
+    /**
+     * Recursively scans a target directory and computes the SHA-256 hash for each file.
      */
     public static Map<String, String> scanDirectory(Path targetDir) {
         Map<String, String> fileHashes = new TreeMap<>();
 
-        // Handle single file input gracefully
         if (Files.isRegularFile(targetDir)) {
             String hash = calculateSHA256(targetDir);
             if (hash != null) {
@@ -83,11 +103,9 @@ public class FileIntegrityMonitor {
             return fileHashes;
         }
 
-        // Walk directory tree recursively using Java NIO Streams
         try (Stream<Path> stream = Files.walk(targetDir)) {
             stream.filter(Files::isRegularFile)
                   .forEach(file -> {
-                      // Convert absolute file path to a relative path from targetDir
                       String relativePath = targetDir.relativize(file).toString();
                       String hash = calculateSHA256(file);
                       if (hash != null) {
