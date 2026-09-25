@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c29f8c7e-45c1-4f8a-b091-42ddcd0ca049" name="Changes" comment="Updated the Java file and added extra comments and added the calculateSHA256 method to the class">
-      <change beforePath="$PROJECT_DIR$/.idea/src/java/FileIntegrityMonitor.java" beforeDir="false" />
+    <list default="true" id="c29f8c7e-45c1-4f8a-b091-42ddcd0ca049" name="Changes" comment="Just updated and fixed the file structure and moved the files out of src package">
       <change beforePath="$PROJECT_DIR$/FileIntegrityMonitor.class" beforeDir="false" afterPath="$PROJECT_DIR$/FileIntegrityMonitor.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FileIntegrityMonitor.java" beforeDir="false" afterPath="$PROJECT_DIR$/FileIntegrityMonitor.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -81,6 +81,7 @@
     <MESSAGE value="verification code" />
     <MESSAGE value="Detects unauthorized file changes using SHA-256 cryptographic hashing" />
     <MESSAGE value="Updated the Java file and added extra comments and added the calculateSHA256 method to the class" />
-    <option name="LAST_COMMIT_MESSAGE" value="Updated the Java file and added extra comments and added the calculateSHA256 method to the class" />
+    <MESSAGE value="Just updated and fixed the file structure and moved the files out of src package" />
+    <option name="LAST_COMMIT_MESSAGE" value="Just updated and fixed the file structure and moved the files out of src package" />
   </component>
 </project>
