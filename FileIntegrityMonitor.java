@@ -38,10 +38,7 @@ public class FileIntegrityMonitor {
                 break;
 
             case "--check":
-                System.out.println("[*] Check mode selected.");
-                System.out.println("[*] Target directory: " + targetPath.toAbsolutePath());
-                System.out.println("[*] Baseline file:    " + baselinePath.toAbsolutePath());
-                // TODO: Implemented in Stage 5
+                checkIntegrity(targetPath, baselinePath);
                 break;
 
             default:
@@ -51,12 +48,6 @@ public class FileIntegrityMonitor {
         }
     }
 
-    /**
-     * Generates a baseline manifest file containing SHA-256 hashes of all files in targetDir.
-     *
-     * @param targetDir Directory to scan
-     * @param baselinePath Output path for the baseline manifest
-     */
     private static void initBaseline(Path targetDir, Path baselinePath) {
         System.out.println("[*] Generating baseline manifest...");
         System.out.println("[*] Target directory: " + targetDir.toAbsolutePath());
@@ -68,7 +59,6 @@ public class FileIntegrityMonitor {
 
         Map<String, String> fileHashes = scanDirectory(targetDir);
 
-        // Properties is Java's standard key-value configuration and manifest container
         Properties props = new Properties();
         props.setProperty("metadata.timestamp", Instant.now().toString());
         props.setProperty("metadata.target", targetDir.toAbsolutePath().toString());
@@ -78,7 +68,6 @@ public class FileIntegrityMonitor {
             props.setProperty("hash." + entry.getKey(), entry.getValue());
         }
 
-        // Save manifest using buffered I/O stream
         try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(baselinePath))) {
             props.store(out, "FIM Security Baseline Manifest - SHA-256");
             System.out.println("[+] Success: Baseline generated with " + fileHashes.size() + " file signature(s).");
@@ -89,9 +78,104 @@ public class FileIntegrityMonitor {
         }
     }
 
-    /**
-     * Recursively scans a target directory and computes the SHA-256 hash for each file.
-     */
+    private static void checkIntegrity(Path targetDir, Path baselinePath) {
+        System.out.println("[*] Auditing target directory: " + targetDir.toAbsolutePath());
+        System.out.println("[*] Reading baseline manifest: " + baselinePath.toAbsolutePath());
+
+        if (!Files.exists(baselinePath)) {
+            System.err.println("[x] Error: Baseline manifest '" + baselinePath + "' not found. Run --init first.");
+            System.exit(1);
+        }
+
+        if (!Files.exists(targetDir)) {
+            System.err.println("[x] Error: Target path '" + targetDir + "' does not exist.");
+            System.exit(1);
+        }
+
+        Properties props = new Properties();
+        try (InputStream in = new BufferedInputStream(Files.newInputStream(baselinePath))) {
+            props.load(in);
+        } catch (IOException e) {
+            System.err.println("[x] Error reading baseline file: " + e.getMessage());
+            System.exit(1);
+        }
+
+        Map<String, String> baselineHashes = new TreeMap<>();
+        for (String key : props.stringPropertyNames()) {
+            if (key.startsWith("hash.")) {
+                String relativePath = key.substring(5);
+                baselineHashes.put(relativePath, props.getProperty(key));
+            }
+        }
+
+        Map<String, String> currentHashes = scanDirectory(targetDir);
+
+        List<String> modified = new ArrayList<>();
+        List<String> deleted = new ArrayList<>();
+        List<String> created = new ArrayList<>();
+
+        for (Map.Entry<String, String> entry : baselineHashes.entrySet()) {
+            String filePath = entry.getKey();
+            String baselineHash = entry.getValue();
+
+            if (!currentHashes.containsKey(filePath)) {
+                deleted.add(filePath);
+            } else if (!currentHashes.get(filePath).equals(baselineHash)) {
+                modified.add(filePath);
+            }
+        }
+
+        for (String filePath : currentHashes.keySet()) {
+            if (!baselineHashes.containsKey(filePath)) {
+                created.add(filePath);
+            }
+        }
+
+        System.out.println();
+        System.out.println("==================================================");
+        System.out.println("  INTEGRITY AUDIT REPORT");
+        System.out.println("  Baseline Created: " + props.getProperty("metadata.timestamp", "unknown"));
+        System.out.println("  Audit Executed:   " + Instant.now());
+        System.out.println("==================================================");
+
+        boolean violations = false;
+
+        if (!modified.isEmpty()) {
+            violations = true;
+            System.out.println("\n[!] MODIFIED FILES (Integrity Violated):");
+            for (String f : modified) {
+                System.out.println("    [~] " + f);
+            }
+        }
+
+        if (!created.isEmpty()) {
+            violations = true;
+            System.out.println("\n[!] NEW / UNKNOWN FILES (Potential Threat):");
+            for (String f : created) {
+                System.out.println("    [+] " + f);
+            }
+        }
+
+        if (!deleted.isEmpty()) {
+            violations = true;
+            System.out.println("\n[!] DELETED FILES (Missing Artifacts):");
+            for (String f : deleted) {
+                System.out.println("    [-] " + f);
+            }
+        }
+
+        System.out.println("\n--------------------------------------------------");
+        if (!violations) {
+            System.out.println("[+] PASS: All files match baseline. Integrity verified.");
+            System.out.println();
+        } else {
+            int total = modified.size() + created.size() + deleted.size();
+            System.out.println("[!] ALERT: " + total + " integrity violation(s) detected!");
+            System.out.println();
+            System.exit(2);
+        }
+    }
+
     public static Map<String, String> scanDirectory(Path targetDir) {
         Map<String, String> fileHashes = new TreeMap<>();
 
@@ -119,9 +203,6 @@ public class FileIntegrityMonitor {
         return fileHashes;
     }
 
-    /**
-     * Computes the SHA-256 hash of a file using chunked stream I/O.
-     */
     public static String calculateSHA256(Path filePath) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
